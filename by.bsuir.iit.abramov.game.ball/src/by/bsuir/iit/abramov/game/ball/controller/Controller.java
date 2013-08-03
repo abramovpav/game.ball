@@ -60,6 +60,11 @@ public class Controller implements Observer {
 		return desktop.getWidth();
 	}
 
+	public void reset() {
+
+		model.reset();
+	}
+
 	public void run() {
 
 		final Point coordinates = model.getCoordinates();

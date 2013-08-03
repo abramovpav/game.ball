@@ -146,6 +146,12 @@ public class Model implements Observable {
 
 	}
 
+	public void reset() {
+
+		powerOfFriction.clear();
+		ball.reset();
+	}
+
 	private void secondNewtonLaw() {
 
 		double accelerationX, accelerationY;

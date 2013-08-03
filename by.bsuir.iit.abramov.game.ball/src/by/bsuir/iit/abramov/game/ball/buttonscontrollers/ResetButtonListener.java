@@ -26,9 +26,7 @@ public final class ResetButtonListener implements ActionListener {
 			return;
 		}
 
-		// Timer timer = new Timer();
-		// timer.scheduleAtFixedRate(new
-		// MyTimerTask((Desktop)button.getContainer()), sec, sec);
+		((Desktop) button.getContainer()).reset();
 	}
 
 }

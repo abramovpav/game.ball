@@ -7,18 +7,21 @@ import java.awt.Point;
 import java.util.Observer;
 import java.util.Timer;
 
-import javax.swing.JButton;
 import javax.swing.JPanel;
 
 import by.bsuir.iit.abramov.game.ball.Observable;
-import by.bsuir.iit.abramov.game.ball.buttonscontrollers.MinusButtonListener;
-import by.bsuir.iit.abramov.game.ball.buttonscontrollers.StartButtonListener;
 import by.bsuir.iit.abramov.game.ball.controller.Controller;
 import by.bsuir.iit.abramov.game.ball.model.Vector;
 
 public class Desktop extends JPanel implements Observable {
 
-	private static final int	BALL_RADIUS	= 10;
+	private static final Color	COLOR_DEFAULT			= Color.BLACK;
+	private static final Color	COLOR_POWER_OF_FRICTION	= Color.GREEN;
+	private static final Color	COLOR_SPEED				= Color.RED;
+	private static final Color	COLOR_ACCELERATION		= Color.BLUE;
+	private static final Color	COLOR_USER_POWER		= Desktop.COLOR_DEFAULT;
+	private static final int	DEFAULT_USER_POWER		= 50;
+	private static final int	BALL_IMAGE_RADIUS		= 10;
 	public Window				window;
 	private Controller			observer;
 	private int					x, y;
@@ -28,7 +31,6 @@ public class Desktop extends JPanel implements Observable {
 	public Desktop(final Window window) {
 
 		this.window = window;
-		// this.setLayout(new BorderLayout(0, 0));
 		initialize();
 	}
 
@@ -53,6 +55,19 @@ public class Desktop extends JPanel implements Observable {
 		final double angle = userPower.getAngle();
 		final double length = userPower.getLength() - 1;
 		userPower.setProjections(length * Math.cos(angle), length * Math.sin(angle));
+	}
+
+	private void drawPower(final Graphics2D g2d, final int centerBallX,
+			final int centerBallY, final Vector vector, final Color color) {
+
+		Double angle;
+		angle = vector.getAngle();
+		g2d.setColor(color);
+		if (angle != null) {
+			g2d.drawLine(centerBallX, centerBallY, centerBallX
+					+ (int) (Math.cos(angle) * Desktop.DEFAULT_USER_POWER), centerBallY
+					+ (int) (Math.sin(angle) * Desktop.DEFAULT_USER_POWER));
+		}
 	}
 
 	public int getBallX() {
@@ -84,14 +99,7 @@ public class Desktop extends JPanel implements Observable {
 
 	private void initialize() {
 
-		userPower = new Vector(50, 0);
-		JButton button = new JButton("Start");
-		button.setLocation(400, 400);
-		this.add(button);
-		button.addActionListener(new StartButtonListener());
-		button = new JButton("-");
-		button.addActionListener(new MinusButtonListener());
-		this.add(button);
+		userPower = new Vector(Desktop.DEFAULT_USER_POWER, 0);
 		x = getWidth() / 2;
 		y = getHeight() / 2;
 	}
@@ -119,12 +127,11 @@ public class Desktop extends JPanel implements Observable {
 		if (x < 0 && y < 0) {
 			angle += Math.PI;
 		} else if (x < 0 && y > 0) {
-			// angle *= -1;
 			angle += Math.PI;
 		} else if (x > 0 && y < 0) {
 			angle += 2 * Math.PI;
 		}
-		// System.out.println("angle = " + angle);
+
 		if (angle != null) {
 			final double length = userPower.getLength();
 			userPower.setProjections(length * Math.cos(angle), length * Math.sin(angle));
@@ -137,58 +144,35 @@ public class Desktop extends JPanel implements Observable {
 		final Graphics2D g2d = (Graphics2D) gr;
 		g2d.clearRect(0, 0, getWidth(), getHeight());
 
-		g2d.drawOval(x, y, Desktop.BALL_RADIUS * 2, Desktop.BALL_RADIUS * 2);
-		g2d.drawLine(x + Desktop.BALL_RADIUS, y + Desktop.BALL_RADIUS, x
-				+ Desktop.BALL_RADIUS + (int) userPower.getProjectionX(), y
-				+ Desktop.BALL_RADIUS + (int) userPower.getProjectionY());
-		final int centerX = getWidth() / 2, centerY = getHeight() / 2;
-		Double angle;
-
-		// draw F
-		g2d.setColor(Color.BLACK);
-		angle = userPower.getAngle();
-		g2d.drawLine(centerX + Desktop.BALL_RADIUS, centerY + Desktop.BALL_RADIUS,
-				centerX + Desktop.BALL_RADIUS + (int) (Math.cos(angle) * 50), centerY
-						+ Desktop.BALL_RADIUS + (int) (Math.sin(angle) * 50));
-		// g2d.drawLine(centerX + BALL_RADIUS, centerY + BALL_RADIUS, centerX +
-		// BALL_RADIUS + (int)userPower.getProjectionX(), centerY + BALL_RADIUS
-		// + (int)userPower.getProjectionY());
+		g2d.setColor(Desktop.COLOR_DEFAULT);
+		g2d.drawOval(x, y, Desktop.BALL_IMAGE_RADIUS * 2, Desktop.BALL_IMAGE_RADIUS * 2);
+		final int centerBallX = x + Desktop.BALL_IMAGE_RADIUS;
+		final int centerBallY = y + Desktop.BALL_IMAGE_RADIUS;
 
 		// draw a
-		final Vector acceleration = observer.getAccelerationVector();
-		angle = acceleration.getAngle();
-		if (angle != null) {
-			g2d.setColor(Color.BLUE);
-			g2d.drawLine(centerX + Desktop.BALL_RADIUS, centerY + Desktop.BALL_RADIUS,
-					centerX + Desktop.BALL_RADIUS + (int) (Math.cos(angle) * 50), centerY
-							+ Desktop.BALL_RADIUS + (int) (Math.sin(angle) * 50));
-			// g2d.drawLine(centerX + BALL_RADIUS, centerY + BALL_RADIUS,
-			// centerX + BALL_RADIUS + (int)acceleration.getProjectionX(),
-			// centerY + BALL_RADIUS + (int)acceleration.getProjectionY());
-		}
+		drawPower(g2d, centerBallX, centerBallY, observer.getAccelerationVector(),
+				Desktop.COLOR_ACCELERATION);
 
 		// draw v
-		final Vector speed = observer.getSpeedVector();
-		angle = speed.getAngle();
-		if (angle != null) {
-			g2d.setColor(Color.RED);
-			g2d.drawLine(centerX + Desktop.BALL_RADIUS, centerY + Desktop.BALL_RADIUS,
-					centerX + Desktop.BALL_RADIUS + (int) (Math.cos(angle) * 50), centerY
-							+ Desktop.BALL_RADIUS + (int) (Math.sin(angle) * 50));
-			// g2d.drawLine(centerX + BALL_RADIUS, centerY + BALL_RADIUS,
-			// centerX + BALL_RADIUS + (int)speed.getProjectionX(), centerY +
-			// BALL_RADIUS + (int)speed.getProjectionY());
-		}
+		drawPower(g2d, centerBallX, centerBallY, observer.getSpeedVector(),
+				Desktop.COLOR_SPEED);
 
 		// draw frictionPower
-		final Vector friction = observer.getPowerOfFriction();
-		angle = friction.getAngle();
-		if (angle != null) {
-			g2d.setColor(Color.YELLOW);
-			g2d.drawLine(centerX + Desktop.BALL_RADIUS, centerY + Desktop.BALL_RADIUS,
-					centerX + Desktop.BALL_RADIUS + (int) (Math.cos(angle) * 50), centerY
-							+ Desktop.BALL_RADIUS + (int) (Math.sin(angle) * 50));
-		}
+		drawPower(g2d, centerBallX, centerBallY, observer.getPowerOfFriction(),
+				Desktop.COLOR_POWER_OF_FRICTION);
+
+		// draw F
+		drawPower(g2d, centerBallX, centerBallY, userPower, Desktop.COLOR_USER_POWER);
+
+		// draw mark
+		// int markX = x < 0 ? DEFAULT_USER_POWER : (x > getWidth() ? getWidth()
+		// - DEFAULT_USER_POWER : x);
+		// int markY = y < 0 ? DEFAULT_USER_POWER : (y > getHeight() ?
+		// getHeight() - DEFAULT_USER_POWER : y);
+		// drawPower(g2d, markX, markY, observer.getSpeedVector(), COLOR_SPEED);
+		final String text = "F = " + Double.toString(userPower.getLength()) + ";v = "
+				+ observer.getSpeedVector().getLength();
+		g2d.drawString(text, getWidth() - text.length() * 7 - 10, getHeight() - 2);
 	}
 
 	public void recordActivetimer(final Timer timer) {
@@ -200,7 +184,16 @@ public class Desktop extends JPanel implements Observable {
 	public void removeObserver() {
 
 		observer = null;
+	}
 
+	public void reset() {
+
+		observer.reset();
+		cleanTimer();
+		userPower.setProjections(Desktop.DEFAULT_USER_POWER, 0);
+		x = observer.getBallX();
+		y = observer.getBallY();
+		repaint();
 	}
 
 	public void setCoordinates(final int x, final int y) {

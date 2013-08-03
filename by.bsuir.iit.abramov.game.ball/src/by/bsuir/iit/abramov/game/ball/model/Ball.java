@@ -11,9 +11,7 @@ public class Ball {
 	public Ball(final double mass) {
 
 		this.mass = mass;
-		x = y = 0;
-		speedVector = new Vector(0, 0);
-		accelerationVector = new Vector(0, 0);
+		initialize();
 	}
 
 	private double calculateSpeedAngle(final double oldSpeed, final double newSpeed,
@@ -55,6 +53,13 @@ public class Ball {
 		return y;
 	}
 
+	private void initialize() {
+
+		x = y = 0;
+		speedVector = new Vector(0, 0);
+		accelerationVector = new Vector(0, 0);
+	}
+
 	public void refreshSpeedVector(final double dt, final Vector userPower,
 			final Vector powerOfFriction) {
 
@@ -77,19 +82,17 @@ public class Ball {
 				newY = 0;
 			}
 		}
-		/*
-		 * double speed = speedVector.getProjectionX() +
-		 * accelerationVector.getProjectionX() * dt;
-		 * speedVector.setProjections(speed, speedVector.getProjectionY() +
-		 * accelerationVector.getProjectionY() * dt);
-		 * //speedVector.setAngle(calculateSpeedAngle(oldSpeed,
-		 * speedVector.getLength(), accelerationVector.getLength(),
-		 * accelerationVector.getAngle()));
-		 */
 		x = (int) (x + oldX * dt + (acX * Math.pow(dt, 2) / 2));
 		y = (int) (y + oldY * dt + (acY * Math.pow(dt, 2) / 2));
 		speedVector.setProjections(newX, newY);
 
+	}
+
+	public void reset() {
+
+		x = y = 0;
+		speedVector.setProjections(0, 0);
+		accelerationVector.setProjections(0, 0);
 	}
 
 	public void setAccelerationVector(final Vector accelerationVector) {

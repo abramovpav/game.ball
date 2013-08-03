@@ -11,10 +11,38 @@ public class Vector {
 
 		super();
 
-		this.projectionX = projectionX;
-		this.projectionY = projectionY;
+		this.projectionX = checkProjection(projectionX);
+		this.projectionY = checkProjection(projectionY);
+		calculateAngleAndLength(this.projectionX, this.projectionY);
+	}
+
+	private void calculateAngleAndLength(final double projectionX,
+			final double projectionY) {
+
+		calculateAngleFromProjections(this.projectionX, this.projectionY);
+		if (angle == null) {
+			return;
+		}
+		if (isAngleOnX()) {
+			length = Math.abs(projectionX);
+			return;
+		}
+		if (isAngleOnY()) {
+			length = Math.abs(projectionY);
+			return;
+		}
+		length = Math.sqrt(Math.pow(this.projectionX, 2) + Math.pow(this.projectionY, 2));
+	}
+
+	private void calculateAngleFromProjections(final double projectionX,
+			final double projectionY) {
+
 		if (projectionX != 0) {
-			angle = Math.atan(projectionY / projectionX);
+			if (projectionY == 0 && projectionX < 0) {
+				angle = Math.PI;
+			} else {
+				angle = Math.atan(projectionY / projectionX);
+			}
 		} else {
 			if (projectionY == 0) {
 				angle = null;
@@ -23,15 +51,14 @@ public class Vector {
 			}
 			angle = projectionY > 0 ? Math.PI / 2 : 3 * Math.PI / 2;
 		}
-		if (angle == 0 || angle == Math.PI * 2) {
-			length = projectionX;
-			return;
+
+		if (projectionX < 0 && projectionY < 0) {
+			angle += Math.PI;
+		} else if (projectionX < 0 && projectionY > 0) {
+			angle += Math.PI;
+		} else if (projectionX > 0 && projectionY < 0) {
+			angle += 2 * Math.PI;
 		}
-		if (angle == Math.PI / 2 || angle == 3 * Math.PI / 2) {
-			length = projectionY;
-			return;
-		}
-		length = Math.sqrt(Math.pow(projectionX, 2) + Math.pow(projectionY, 2));
 	}
 
 	private double checkProjection(final double projectionX) {
@@ -67,42 +94,21 @@ public class Vector {
 		return projectionY;
 	}
 
+	private boolean isAngleOnX() {
+
+		return angle == 0 || angle == Math.PI * 2 || angle == Math.PI;
+	}
+
+	private boolean isAngleOnY() {
+
+		return angle == Math.PI / 2 || angle == 3 * Math.PI / 2;
+	}
+
 	public void setProjections(final double projectionX, final double projectionY) {
 
 		this.projectionX = checkProjection(projectionX);
 		this.projectionY = checkProjection(projectionY);
-		if (this.projectionX != 0) {
-			if (this.projectionY == 0 && this.projectionX < 0) {
-				angle = Math.PI;
-			} else {
-				angle = Math.atan(this.projectionY / this.projectionX);
-			}
-		} else {
-			if (this.projectionY == 0) {
-				angle = null;
-				length = 0;
-				return;
-			}
-			angle = this.projectionY > 0 ? Math.PI / 2 : 3 * Math.PI / 2;
-		}
-
-		if (this.projectionX < 0 && this.projectionY < 0) {
-			angle += Math.PI;
-		} else if (this.projectionX < 0 && this.projectionY > 0) {
-			// angle *= -1;
-			angle += Math.PI;
-		} else if (this.projectionX > 0 && this.projectionY < 0) {
-			angle += 2 * Math.PI;
-		}
-		if (angle == 0 || angle == Math.PI * 2) {
-			length = Math.abs(this.projectionX);
-			return;
-		}
-		if (angle == Math.PI / 2 || angle == 3 * Math.PI / 2) {
-			length = Math.abs(this.projectionY);
-			return;
-		}
-		length = Math.sqrt(Math.pow(this.projectionX, 2) + Math.pow(this.projectionY, 2));
+		calculateAngleAndLength(this.projectionX, this.projectionY);
 	}
 
 }
