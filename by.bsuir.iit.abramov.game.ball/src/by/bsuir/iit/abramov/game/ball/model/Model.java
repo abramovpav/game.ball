@@ -1,10 +1,7 @@
 package by.bsuir.iit.abramov.game.ball.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.awt.Point;
 import java.util.Observer;
-
-import com.sun.org.apache.bcel.internal.generic.ARRAYLENGTH;
 
 import by.bsuir.iit.abramov.game.ball.Observable;
 import by.bsuir.iit.abramov.game.ball.controller.Controller;
@@ -12,80 +9,160 @@ import by.bsuir.iit.abramov.game.ball.controller.Controller;
 public class Model implements Observable {
 
 	private static final double	kFriction	= 0.5;
-	private static final int	g	= 10;
-	private Controller observer;
-	private Vector userPower;
-	private Vector powerOfFriction;
-	private Vector speedVector;
-	private double speed;
-	private Ball ball;
-	private double acceleration;
-	private int x;
-	private int y;
-	
+	private static final int	g			= 10;
+	private Controller			observer;
+	private Vector				userPower;
+	private final Vector		powerOfFriction;
+	private static final double	dt			= 1;
+
+	private final Ball			ball;
+
 	public Model() {
+
 		ball = new Ball(10);
 		userPower = new Vector(0, 0);
-		acceleration  = 0;
-		speed = 0;
-		speedVector = new Vector(0,0);
 		powerOfFriction = new Vector(0, 0);
-		x = observer.getWidth() / 2;
-		y = observer.getHeight() / 2;
 	}
-	
-	private double getFrictionValue() {
-		double value;
-		
-		value = kFriction * g;
-		double angle = Math.abs(userPower.getAngle() - powerOfFriction.getAngle());
-		double userPowerProjectionOnFriction = userPower.getLength() * Math.cos(angle);
-		if (userPower.getLength() != 0) {
-			value = Math.min(userPowerProjectionOnFriction, value);
+
+	@Override
+	public void addObserver(final Observer observer) {
+
+		if (Controller.class.equals(observer.getClass())) {
+			this.observer = (Controller) observer;
 		}
-		
-		return value;
 	}
-	
-	private void refreshFrictionVector() {
-		powerOfFriction.setLength(getFrictionValue());
-		powerOfFriction.setAngle(getInverseAngle(speedVector.getAngle()));
+
+	public Vector getAccelerationVector() {
+
+		return ball.getAccelerationVector();
 	}
-	
-	
-	private double getInverseAngle(final double angle) {
-		double inversion = angle;
-		
-		inversion -= Math.PI;
-		
-		if (inversion < 0) {
-			inversion += 2 * Math.PI;
+
+	public int getBallX() {
+
+		return ball.getX();
+	}
+
+	public int getBallY() {
+
+		return ball.getY();
+	}
+
+	public Point getCoordinates() {
+
+		final Point point = new Point(0, 0);
+
+		userPower = observer.getUserPower();
+		powerOfFriction.clear();
+		refreshFrictionVector();
+		secondNewtonLaw();
+		refreshSpeedVector();
+
+		point.x = ball.getX();
+		point.y = ball.getY();
+		System.out.println("******************");
+		System.out.println("F = " + userPower.getLength() + " " + userPower.getAngle());
+		System.out.println("v = " + ball.getSpeedVector().getLength());
+		System.out.println("a = " + ball.getAccelerationVector().getLength());
+		System.out.println(point);
+		System.out.println("******************");
+		return point;
+	}
+
+	private Double getInverseAngle(final Double angle, final double length) {
+
+		Double inversion = angle;
+		if (length == 0) {
+			return new Double(0);
 		}
-		
+		if (angle != null) {
+			inversion -= Math.PI;
+
+			if (inversion < 0) {
+				inversion += 2 * Math.PI;
+			}
+		} else {
+			inversion = null;
+		}
+
 		return inversion;
 	}
-	
-	public int getX() {
-		return x;
-	}
-	
-	public int getY() {
-		return y;
-	}
-	@Override
-	public void addObserver(Observer observer) {
 
-		if (Controller.class == observer.getClass()) {
-			this.observer = (Controller)observer;
+	public Vector getPowerOfFriction() {
+
+		return powerOfFriction;
+	}
+
+	public Vector getSpeedVector() {
+
+		return ball.getSpeedVector();
+	}
+
+	private void refreshFrictionVector() {
+
+		double value;
+
+		value = Model.kFriction * ball.getMass() * Model.g;
+		final Double speedAngle = getInverseAngle(ball.getSpeedVector().getAngle(), 1);
+		if (speedAngle == null) {
+			powerOfFriction.clear();
+			if (userPower.getLength() != 0) {
+				double frX = value
+						* Math.cos(getInverseAngle(userPower.getAngle(),
+								userPower.getLength()));
+				double frY = value
+						* Math.sin(getInverseAngle(userPower.getAngle(),
+								userPower.getLength()));
+
+				if (Math.abs(frX) > Math.abs(-1 * userPower.getProjectionX())) {
+					frX = -1 * userPower.getProjectionX();
+				}
+				if (Math.abs(frY) > Math.abs(-1 * userPower.getProjectionY())) {
+					frY = -1 * userPower.getProjectionY();
+				}
+				powerOfFriction.setProjections(frX, frY);
+			}
+			return;
 		}
+		final double cos = Math.cos(speedAngle);
+		final double sin = Math.sin(speedAngle);
+		powerOfFriction.setProjections(value * cos, value * sin);
+		/*
+		 * if (ball.getSpeedVector().getLength() == 0 ) {//&&
+		 * powerOfFriction.getLength() > userPower.getLength()) {
+		 * 
+		 * }
+		 */
+	}
+
+	private void refreshSpeedVector() {
+
+		ball.refreshSpeedVector(Model.dt, userPower, powerOfFriction);
 	}
 
 	@Override
 	public void removeObserver() {
-			observer = null;
-		
+
+		observer = null;
+
 	}
 
-	
+	private void secondNewtonLaw() {
+
+		double accelerationX, accelerationY;
+		final double uPX = userPower.getProjectionX(), uPY = userPower.getProjectionY();
+		final double fPX = powerOfFriction.getProjectionX(), fPY = powerOfFriction
+				.getProjectionY();
+		final double mass = ball.getMass();
+
+		// X:
+
+		accelerationX = (uPX + fPX) / mass;
+
+		// Y:
+
+		accelerationY = (uPY + fPY) / mass;
+
+		ball.getAccelerationVector().setProjections(accelerationX, accelerationY);
+	}
 
 }
