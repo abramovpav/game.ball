@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Observer;
 import java.util.Timer;
 
@@ -15,22 +17,24 @@ import by.bsuir.iit.abramov.game.ball.model.Vector;
 
 public class Desktop extends JPanel implements Observable {
 
-	private static final Color	COLOR_DEFAULT			= Color.BLACK;
-	private static final Color	COLOR_POWER_OF_FRICTION	= Color.GREEN;
-	private static final Color	COLOR_SPEED				= Color.RED;
-	private static final Color	COLOR_ACCELERATION		= Color.BLUE;
-	private static final Color	COLOR_USER_POWER		= Desktop.COLOR_DEFAULT;
-	private static final int	DEFAULT_USER_POWER		= 50;
-	private static final int	BALL_IMAGE_RADIUS		= 10;
-	public Window				window;
-	private Controller			observer;
-	private int					x, y;
-	private Vector				userPower;
-	private Timer				activeTimer;
+	private static final Color			COLOR_DEFAULT			= Color.BLACK;
+	private static final Color			COLOR_POWER_OF_FRICTION	= Color.GREEN;
+	private static final Color			COLOR_SPEED				= Color.RED;
+	private static final Color			COLOR_ACCELERATION		= Color.BLUE;
+	private static final Color			COLOR_USER_POWER		= Desktop.COLOR_DEFAULT;
+	private static final int			DEFAULT_USER_POWER		= 50;
+	private static final int			BALL_IMAGE_RADIUS		= 10;
+	public Window						window;
+	private Controller					observer;
+	private Map<Integer, Point>			ballCoordinates;
+	private Timer						activeTimer;
+	private int							selectedBallID;
+	private final Map<Integer, Vector>	userPowerVectors;
 
 	public Desktop(final Window window) {
 
 		this.window = window;
+		userPowerVectors = new HashMap<Integer, Vector>();
 		initialize();
 	}
 
@@ -52,6 +56,7 @@ public class Desktop extends JPanel implements Observable {
 
 	public void decUserPowerLength() {
 
+		final Vector userPower = getUserPower(selectedBallID);
 		final double angle = userPower.getAngle();
 		final double length = userPower.getLength() - 1;
 		userPower.setProjections(length * Math.cos(angle), length * Math.sin(angle));
@@ -70,14 +75,14 @@ public class Desktop extends JPanel implements Observable {
 		}
 	}
 
-	public int getBallX() {
+	public int getBallX(final int ID) {
 
-		return observer.getBallX();
+		return observer.getBallX(ID);
 	}
 
-	public int getBallY() {
+	public int getBallY(final int ID) {
 
-		return observer.getBallY();
+		return observer.getBallY(ID);
 	}
 
 	public final Controller getObserver() {
@@ -85,13 +90,18 @@ public class Desktop extends JPanel implements Observable {
 		return observer;
 	}
 
-	public Vector getUserPower() {
+	public Vector getUserPower(final int ID) {
 
-		return userPower;
+		if (userPowerVectors.containsKey(ID)) {
+			return userPowerVectors.get(ID);
+		} else {
+			return null;
+		}
 	}
 
 	public void incUserPowerLength() {
 
+		final Vector userPower = getUserPower(selectedBallID);
 		final double angle = userPower.getAngle();
 		final double length = userPower.getLength() + 1;
 		userPower.setProjections(length * Math.cos(angle), length * Math.sin(angle));
@@ -99,15 +109,17 @@ public class Desktop extends JPanel implements Observable {
 
 	private void initialize() {
 
-		userPower = new Vector(Desktop.DEFAULT_USER_POWER, 0);
-		x = getWidth() / 2;
-		y = getHeight() / 2;
+		final Vector userPower = new Vector(Desktop.DEFAULT_USER_POWER, 0);
+		userPowerVectors.put(0, userPower);
+		ballCoordinates = new HashMap<Integer, Point>();
+		ballCoordinates.put(0, new Point(getWidth() / 2, getHeight() / 2));
 	}
 
 	public void mouseMoved(int x, int y) {
 
-		x = x - getBallX();
-		y = y - getBallY();
+		final Vector userPower = getUserPower(selectedBallID);
+		x = x - getBallX(selectedBallID);
+		y = y - getBallY(selectedBallID);
 
 		Double angle;
 		if (x != 0) {
@@ -143,36 +155,47 @@ public class Desktop extends JPanel implements Observable {
 
 		final Graphics2D g2d = (Graphics2D) gr;
 		g2d.clearRect(0, 0, getWidth(), getHeight());
+		int x, y;
 
-		g2d.setColor(Desktop.COLOR_DEFAULT);
-		g2d.drawOval(x, y, Desktop.BALL_IMAGE_RADIUS * 2, Desktop.BALL_IMAGE_RADIUS * 2);
-		final int centerBallX = x + Desktop.BALL_IMAGE_RADIUS;
-		final int centerBallY = y + Desktop.BALL_IMAGE_RADIUS;
+		for (final Integer ID : ballCoordinates.keySet()) {
+			final Point point = ballCoordinates.get(ID);
+			x = point.x;
+			y = point.y;
+			g2d.setColor(Desktop.COLOR_DEFAULT);
+			g2d.drawOval(x, y, Desktop.BALL_IMAGE_RADIUS * 2,
+					Desktop.BALL_IMAGE_RADIUS * 2);
+			final int centerBallX = x + Desktop.BALL_IMAGE_RADIUS;
+			final int centerBallY = y + Desktop.BALL_IMAGE_RADIUS;
 
-		// draw a
-		drawPower(g2d, centerBallX, centerBallY, observer.getAccelerationVector(),
-				Desktop.COLOR_ACCELERATION);
+			// draw a
+			drawPower(g2d, centerBallX, centerBallY, observer.getAccelerationVector(ID),
+					Desktop.COLOR_ACCELERATION);
 
-		// draw v
-		drawPower(g2d, centerBallX, centerBallY, observer.getSpeedVector(),
-				Desktop.COLOR_SPEED);
+			// draw v
+			drawPower(g2d, centerBallX, centerBallY, observer.getSpeedVector(ID),
+					Desktop.COLOR_SPEED);
 
-		// draw frictionPower
-		drawPower(g2d, centerBallX, centerBallY, observer.getPowerOfFriction(),
-				Desktop.COLOR_POWER_OF_FRICTION);
+			// draw frictionPower
+			drawPower(g2d, centerBallX, centerBallY, observer.getPowerOfFriction(ID),
+					Desktop.COLOR_POWER_OF_FRICTION);
 
-		// draw F
-		drawPower(g2d, centerBallX, centerBallY, userPower, Desktop.COLOR_USER_POWER);
+			// draw F
+			drawPower(g2d, centerBallX, centerBallY, getUserPower(ID),
+					Desktop.COLOR_USER_POWER);
 
-		// draw mark
-		// int markX = x < 0 ? DEFAULT_USER_POWER : (x > getWidth() ? getWidth()
-		// - DEFAULT_USER_POWER : x);
-		// int markY = y < 0 ? DEFAULT_USER_POWER : (y > getHeight() ?
-		// getHeight() - DEFAULT_USER_POWER : y);
-		// drawPower(g2d, markX, markY, observer.getSpeedVector(), COLOR_SPEED);
-		final String text = "F = " + Double.toString(userPower.getLength()) + ";v = "
-				+ observer.getSpeedVector().getLength();
-		g2d.drawString(text, getWidth() - text.length() * 7 - 10, getHeight() - 2);
+			// draw mark
+			// int markX = x < 0 ? DEFAULT_USER_POWER : (x > getWidth() ?
+			// getWidth()
+			// - DEFAULT_USER_POWER : x);
+			// int markY = y < 0 ? DEFAULT_USER_POWER : (y > getHeight() ?
+			// getHeight() - DEFAULT_USER_POWER : y);
+			// drawPower(g2d, markX, markY, observer.getSpeedVector(),
+			// COLOR_SPEED);
+			final String text = "F = "
+					+ Double.toString(getUserPower(selectedBallID).getLength()) + ";v = "
+					+ observer.getSpeedVector(selectedBallID).getLength();
+			g2d.drawString(text, getWidth() - text.length() * 7 - 10, getHeight() - 2);
+		}
 	}
 
 	public void recordActivetimer(final Timer timer) {
@@ -190,27 +213,28 @@ public class Desktop extends JPanel implements Observable {
 
 		observer.reset();
 		cleanTimer();
-		userPower.setProjections(Desktop.DEFAULT_USER_POWER, 0);
-		x = observer.getBallX();
-		y = observer.getBallY();
+		for (final Integer ID : ballCoordinates.keySet()) {
+			final Point point = ballCoordinates.get(ID);
+			point.x = observer.getBallX(ID);
+			point.y = observer.getBallY(ID);
+		}
+		for (final Vector userPower : userPowerVectors.values()) {
+			userPower.setProjections(Desktop.DEFAULT_USER_POWER, 0);
+		}
+		selectedBallID = 0;
 		repaint();
 	}
 
-	public void setCoordinates(final int x, final int y) {
+	public void setCoordinates(final Map<Integer, Point> points) {
 
-		this.x = x;
-		this.y = y;
-	}
-
-	public void setCoordinates(final Point point) {
-
-		x = point.x;
-		y = point.y;
+		ballCoordinates.clear();
+		ballCoordinates.putAll(points);
 		repaint();
 	}
 
 	public void turnLeftUserPower() {
 
+		final Vector userPower = getUserPower(selectedBallID);
 		final double length = userPower.getLength();
 		final double angle = userPower.getAngle() + Math.PI / 90;
 		userPower.setProjections(length * Math.cos(angle), length * Math.sin(angle));
@@ -218,6 +242,7 @@ public class Desktop extends JPanel implements Observable {
 
 	public void turnRightUserPower() {
 
+		final Vector userPower = getUserPower(selectedBallID);
 		final double length = userPower.getLength();
 		final double angle = userPower.getAngle() - Math.PI / 90;
 		userPower.setProjections(length * Math.cos(angle), length * Math.sin(angle));

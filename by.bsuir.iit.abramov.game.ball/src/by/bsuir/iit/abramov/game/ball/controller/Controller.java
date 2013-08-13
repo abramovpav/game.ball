@@ -1,6 +1,7 @@
 package by.bsuir.iit.abramov.game.ball.controller;
 
 import java.awt.Point;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -20,19 +21,19 @@ public class Controller implements Observer {
 		this.model = model;
 	}
 
-	public Vector getAccelerationVector() {
+	public Vector getAccelerationVector(final int ID) {
 
-		return model.getAccelerationVector();
+		return model.getAccelerationVector(ID);
 	}
 
-	public int getBallX() {
+	public int getBallX(final int ID) {
 
-		return model.getBallX();
+		return model.getBallX(ID);
 	}
 
-	public int getBallY() {
+	public int getBallY(final int ID) {
 
-		return model.getBallY();
+		return model.getBallY(ID);
 	}
 
 	public int getHeight() {
@@ -40,19 +41,19 @@ public class Controller implements Observer {
 		return desktop.getHeight();
 	}
 
-	public Vector getPowerOfFriction() {
+	public Vector getPowerOfFriction(final int ID) {
 
-		return model.getPowerOfFriction();
+		return model.getPowerOfFriction(ID);
 	}
 
-	public Vector getSpeedVector() {
+	public Vector getSpeedVector(final int ID) {
 
-		return model.getSpeedVector();
+		return model.getSpeedVector(ID);
 	}
 
-	public Vector getUserPower() {
+	public Vector getUserPower(final int ID) {
 
-		return desktop.getUserPower();
+		return desktop.getUserPower(ID);
 	}
 
 	public int getWidth() {
@@ -67,7 +68,7 @@ public class Controller implements Observer {
 
 	public void run() {
 
-		final Point coordinates = model.getCoordinates();
+		final Map<Integer, Point> coordinates = model.getCoordinates();
 		desktop.setCoordinates(coordinates);
 	}
 

@@ -7,30 +7,23 @@ public class Ball {
 	private int				y;
 	private Vector			speedVector;
 	private Vector			accelerationVector;
+	private final int		ID;
 
-	public Ball(final double mass) {
+	public Ball(final int ID, final double mass) {
 
+		this.ID = ID;
 		this.mass = mass;
 		initialize();
-	}
-
-	private double calculateSpeedAngle(final double oldSpeed, final double newSpeed,
-			final double acceleration, final double accAngle) {
-
-		if (newSpeed == 0) {
-			return 0;
-		}
-		if (oldSpeed == 0) {
-			return accAngle;
-		}
-		return speedVector.getAngle()
-				- Math.acos((Math.pow(oldSpeed, 2) + Math.pow(newSpeed, 2) - Math.pow(
-						acceleration, 2)) / (2 * oldSpeed * newSpeed));
 	}
 
 	public final Vector getAccelerationVector() {
 
 		return accelerationVector;
+	}
+
+	public final int getID() {
+
+		return ID;
 	}
 
 	public double getMass() {
