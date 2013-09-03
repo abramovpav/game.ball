@@ -2,16 +2,31 @@ package by.bsuir.iit.abramov.game.ball.model;
 
 public class Ball {
 
+	public final double		DEFAULT_MASS	= 10;
 	private final double	mass;
 	private int				x;
 	private int				y;
 	private Vector			speedVector;
 	private Vector			accelerationVector;
-	private final int		ID;
 
-	public Ball(final int ID, final double mass) {
+	public Ball() {
 
-		this.ID = ID;
+		mass = DEFAULT_MASS;
+		initialize();
+	}
+
+	public Ball(final Ball ball) {
+
+		mass = ball.getMass();
+		x = ball.getX();
+		y = ball.getY();
+		speedVector = new Vector(ball.getSpeedVector());
+		accelerationVector = new Vector(ball.getAccelerationVector());
+
+	}
+
+	public Ball(final double mass) {
+
 		this.mass = mass;
 		initialize();
 	}
@@ -19,11 +34,6 @@ public class Ball {
 	public final Vector getAccelerationVector() {
 
 		return accelerationVector;
-	}
-
-	public final int getID() {
-
-		return ID;
 	}
 
 	public double getMass() {
@@ -49,8 +59,8 @@ public class Ball {
 	private void initialize() {
 
 		x = y = 0;
-		speedVector = new Vector(0, 0);
-		accelerationVector = new Vector(0, 0);
+		speedVector = new Vector();
+		accelerationVector = new Vector();
 	}
 
 	public void refreshSpeedVector(final double dt, final Vector userPower,

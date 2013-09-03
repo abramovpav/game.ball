@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import by.bsuir.iit.abramov.game.ball.Util.ToolButtons;
 import by.bsuir.iit.abramov.game.ball.buttonscontrollers.LeftButtonListener;
 import by.bsuir.iit.abramov.game.ball.buttonscontrollers.MinusButtonListener;
+import by.bsuir.iit.abramov.game.ball.buttonscontrollers.NewButtonListener;
 import by.bsuir.iit.abramov.game.ball.buttonscontrollers.PlusButtonListener;
 import by.bsuir.iit.abramov.game.ball.buttonscontrollers.ResetButtonListener;
 import by.bsuir.iit.abramov.game.ball.buttonscontrollers.RightButtonListener;
@@ -30,6 +31,8 @@ public class ButtonListenerFactory {
 				return new LeftButtonListener();
 			case Right:
 				return new RightButtonListener();
+			case NEW:
+				return new NewButtonListener();
 			default:
 				throw new IllegalArgumentException();
 		}

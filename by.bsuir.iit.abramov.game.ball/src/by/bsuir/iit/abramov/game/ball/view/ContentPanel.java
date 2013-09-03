@@ -1,6 +1,7 @@
 package by.bsuir.iit.abramov.game.ball.view;
 
 import java.awt.BorderLayout;
+import java.util.Observer;
 
 import javax.swing.JPanel;
 
@@ -24,6 +25,11 @@ public class ContentPanel extends JPanel {
 	public final Desktop getDesktop() {
 
 		return desktop;
+	}
+
+	public final Observer getDesktopObserver() {
+
+		return desktop.getObserver();
 	}
 
 	private void initialize() {

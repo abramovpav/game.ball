@@ -11,13 +11,13 @@ public class Start {
 	public static void main(final String[] args) {
 
 		final Window window = new Window();
-		window.setVisible(true);
 
 		final Model model = new Model();
 
 		final Observer observer = new Controller(window.getDesktop(), model);
 		window.getDesktop().addObserver(observer);
 		model.addObserver(observer);
+		window.setVisible(true);
 
 	}
 

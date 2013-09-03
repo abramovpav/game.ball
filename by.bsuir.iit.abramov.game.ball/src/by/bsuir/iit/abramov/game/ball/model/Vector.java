@@ -2,10 +2,20 @@ package by.bsuir.iit.abramov.game.ball.model;
 
 public class Vector {
 
-	private Double	angle;
-	private double	projectionX;
-	private double	projectionY;
-	private double	length;
+	private final double	DEFAULT_PROJECTION	= 0;
+	private Double			angle;
+	private double			projectionX;
+	private double			projectionY;
+	private double			length;
+
+	public Vector() {
+
+		super();
+
+		projectionX = DEFAULT_PROJECTION;
+		projectionY = DEFAULT_PROJECTION;
+		angle = length = 0;
+	}
 
 	public Vector(final double projectionX, final double projectionY) {
 
@@ -14,6 +24,15 @@ public class Vector {
 		this.projectionX = checkProjection(projectionX);
 		this.projectionY = checkProjection(projectionY);
 		calculateAngleAndLength(this.projectionX, this.projectionY);
+	}
+
+	public Vector(final Vector vector) {
+
+		super();
+
+		projectionX = checkProjection(vector.getProjectionX());
+		projectionY = checkProjection(vector.getProjectionY());
+		calculateAngleAndLength(projectionX, projectionY);
 	}
 
 	private void calculateAngleAndLength(final double projectionX,

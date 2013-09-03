@@ -1,8 +1,8 @@
 package by.bsuir.iit.abramov.game.ball.Util;
 
 public enum ToolButtons {
-	START("Start", true), RESET("Reset", true), STOP("Stop", true), PLUS("+", true), MINUS(
-			"-", true), Right("->", false), Left("<-", false);
+	NEW("New", true), START("Start", true), RESET("Reset", true), STOP("Stop", true), PLUS(
+			"+", true), MINUS("-", true), Right("->", false), Left("<-", false);
 	private final String	name;
 	private boolean			enable;
 

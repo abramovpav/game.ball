@@ -10,26 +10,26 @@ import by.bsuir.iit.abramov.game.ball.controller.Controller;
 
 public class Model implements Observable {
 
-	private static final double			kFriction	= 0.5;
-	private static final int			g			= 10;
-	private Controller					observer;
-	private final Map<Integer, Vector>	userPowerVectors;
-	private final Map<Integer, Vector>	frictionVectors;
-	private static final double			dt			= 1;
+	private static final double				kFriction	= 0.5;
+	private static final int				g			= 10;
+	private Controller						observer;
+	private static final double				dt			= 1;
 
-	private final Map<Integer, Ball>	balls;
+	private final Map<Integer, DefaultUnit>	units;
 
 	public Model() {
 
-		final Ball ball = new Ball(0, 10);
-		balls = new HashMap<Integer, Ball>();
-		balls.put(0, ball);
-		final Vector userPower = new Vector(0, 0);
-		userPowerVectors = new HashMap<Integer, Vector>();
-		userPowerVectors.put(0, userPower);
-		final Vector powerOfFriction = new Vector(0, 0);
-		frictionVectors = new HashMap<Integer, Vector>();
-		frictionVectors.put(0, powerOfFriction);
+		final Vector userPower = new Vector();
+		final Vector powerOfFriction = new Vector();
+		units = new HashMap<Integer, DefaultUnit>();
+		/*
+		 * DefaultUnit unit = new DefaultUnit(0);
+		 * unit.setFrictionPower(powerOfFriction); List<Vector> powerVectors =
+		 * new ArrayList<Vector>(); powerVectors.add(userPower);
+		 * unit.setPowerVectors(powerVectors); units.put(0, unit); unit = new
+		 * DefaultUnit(1, unit); units.put(1, unit);
+		 */
+
 	}
 
 	@Override
@@ -40,11 +40,18 @@ public class Model implements Observable {
 		}
 	}
 
+	public DefaultUnit createUnit(final int ID) {
+
+		final DefaultUnit result = new DefaultUnit(ID);
+		result.setFrictionPower(new Vector());
+		return result;
+	}
+
 	public Vector getAccelerationVector(final int ID) {
 
 		Vector result;
-		if (balls.containsKey(ID)) {
-			result = balls.get(ID).getAccelerationVector();
+		if (units.containsKey(ID)) {
+			result = units.get(ID).getBall().getAccelerationVector();
 		} else {
 			result = null;
 		}
@@ -54,18 +61,18 @@ public class Model implements Observable {
 
 	private final Ball getBall(final int ID) {
 
-		if (!balls.containsKey(ID)) {
+		if (!units.containsKey(ID)) {
 			return null;
 		} else {
-			return balls.get(ID);
+			return units.get(ID).getBall();
 		}
 	}
 
 	public Integer getBallX(final int ID) {
 
 		Integer result;
-		if (balls.containsKey(ID)) {
-			result = balls.get(ID).getX();
+		if (units.containsKey(ID)) {
+			result = units.get(ID).getBall().getX();
 		} else {
 			result = null;
 		}
@@ -75,8 +82,8 @@ public class Model implements Observable {
 	public int getBallY(final int ID) {
 
 		Integer result;
-		if (balls.containsKey(ID)) {
-			result = balls.get(ID).getY();
+		if (units.containsKey(ID)) {
+			result = units.get(ID).getBall().getY();
 		} else {
 			result = null;
 		}
@@ -89,23 +96,25 @@ public class Model implements Observable {
 		Point point;
 		Vector userPower, powerOfFriction;
 		Ball ball;
-		for (final Integer ID : balls.keySet()) {
+		for (final DefaultUnit unit : units.values()) {
 
-			ball = getBall(ID);
+			ball = unit.getBall();
+			final int ID = unit.getID();
 			userPower = getUserPower(ID);
-			powerOfFriction = getFrictionVector(ID);
+			powerOfFriction = unit.getFrictionPower();
 			powerOfFriction.clear();
-			refreshFrictionVector(ID);
+			refreshFrictionVector(unit);
 			if (userPower == null || powerOfFriction == null || ball == null) {
 				point = null;
 				points.put(ID, point);
 				continue;
 			}
-			secondNewtonLaw(ID);
-			refreshSpeedVector(ID);
+			secondNewtonLaw(unit);
+			refreshSpeedVector(unit);
 			point = new Point(ball.getX(), ball.getY());
 			points.put(ID, point);
 			System.out.println("******************");
+			System.out.println("ID = " + ID);
 			System.out.println("F = " + userPower.getLength() + " "
 					+ userPower.getAngle());
 			System.out.println("v = " + ball.getSpeedVector().getLength());
@@ -116,12 +125,12 @@ public class Model implements Observable {
 		return points;
 	}
 
-	private final Vector getFrictionVector(final int ID) {
+	public final Vector getFrictionVector(final int ID) {
 
-		if (!frictionVectors.containsKey(ID)) {
+		if (!units.containsKey(ID)) {
 			return null;
 		} else {
-			return frictionVectors.get(ID);
+			return units.get(ID).getFrictionPower();
 		}
 	}
 
@@ -144,23 +153,11 @@ public class Model implements Observable {
 		return inversion;
 	}
 
-	public Vector getPowerOfFriction(final int ID) {
-
-		Vector result;
-
-		if (frictionVectors.containsKey(ID)) {
-			result = frictionVectors.get(ID);
-		} else {
-			result = null;
-		}
-		return result;
-	}
-
 	public Vector getSpeedVector(final int ID) {
 
 		Vector result;
-		if (balls.containsKey(ID)) {
-			result = balls.get(ID).getSpeedVector();
+		if (units.containsKey(ID)) {
+			result = units.get(ID).getBall().getSpeedVector();
 		} else {
 			result = null;
 		}
@@ -173,13 +170,18 @@ public class Model implements Observable {
 		return observer.getUserPower(ID);
 	}
 
-	private void refreshFrictionVector(final int ID) {
+	public void newUnit(final int ID) {
+
+		units.put(ID, createUnit(ID));
+	}
+
+	private void refreshFrictionVector(final DefaultUnit unit) {
 
 		double value;
 
-		final Ball ball = getBall(ID);
-		final Vector powerOfFriction = getFrictionVector(ID);
-		final Vector userPower = getUserPower(ID);
+		final Ball ball = unit.getBall();
+		final Vector powerOfFriction = unit.getFrictionPower();
+		final Vector userPower = getUserPower(unit.getID());
 		if (userPower == null || powerOfFriction == null || ball == null) {
 			// processing of Exception
 		}
@@ -210,11 +212,11 @@ public class Model implements Observable {
 		powerOfFriction.setProjections(value * cos, value * sin);
 	}
 
-	private void refreshSpeedVector(final int ID) {
+	private void refreshSpeedVector(final DefaultUnit unit) {
 
-		final Ball ball = getBall(ID);
-		final Vector powerOfFriction = getFrictionVector(ID);
-		final Vector userPower = getUserPower(ID);
+		final Ball ball = unit.getBall();
+		final Vector powerOfFriction = unit.getFrictionPower();
+		final Vector userPower = getUserPower(unit.getID());
 		if (userPower == null || powerOfFriction == null || ball == null) {
 			// processing of Exception
 		}
@@ -230,9 +232,9 @@ public class Model implements Observable {
 
 	public void reset() {
 
-		for (final Integer ID : balls.keySet()) {
-			final Ball ball = getBall(ID);
-			final Vector powerOfFriction = getFrictionVector(ID);
+		for (final DefaultUnit unit : units.values()) {
+			final Ball ball = unit.getBall();
+			final Vector powerOfFriction = unit.getFrictionPower();
 			if (powerOfFriction != null) {
 				powerOfFriction.clear();
 			}
@@ -242,11 +244,11 @@ public class Model implements Observable {
 		}
 	}
 
-	private void secondNewtonLaw(final int ID) {
+	private void secondNewtonLaw(final DefaultUnit unit) {
 
-		final Ball ball = getBall(ID);
-		final Vector powerOfFriction = getFrictionVector(ID);
-		final Vector userPower = getUserPower(ID);
+		final Ball ball = unit.getBall();
+		final Vector powerOfFriction = unit.getFrictionPower();
+		final Vector userPower = getUserPower(unit.getID());
 		if (userPower == null || powerOfFriction == null || ball == null) {
 			// processing of Exception
 		}

@@ -109,10 +109,12 @@ public class Desktop extends JPanel implements Observable {
 
 	private void initialize() {
 
-		final Vector userPower = new Vector(Desktop.DEFAULT_USER_POWER, 0);
-		userPowerVectors.put(0, userPower);
+		// Vector userPower = new Vector(Desktop.DEFAULT_USER_POWER, 0);
+		// userPowerVectors.put(0, userPower);
+		// userPower = new Vector(userPower);
+		// userPowerVectors.put(1, userPower);
 		ballCoordinates = new HashMap<Integer, Point>();
-		ballCoordinates.put(0, new Point(getWidth() / 2, getHeight() / 2));
+		// ballCoordinates.put(0, new Point(getWidth() / 2, getHeight() / 2));
 	}
 
 	public void mouseMoved(int x, int y) {
@@ -148,6 +150,14 @@ public class Desktop extends JPanel implements Observable {
 			final double length = userPower.getLength();
 			userPower.setProjections(length * Math.cos(angle), length * Math.sin(angle));
 		}
+	}
+
+	public void newUnit(final int ID) {
+
+		final Vector userPower = new Vector(Desktop.DEFAULT_USER_POWER, 0);
+		userPowerVectors.put(ID, userPower);
+		observer.newUnit(ID);
+		selectedBallID = ID;
 	}
 
 	@Override
@@ -191,10 +201,13 @@ public class Desktop extends JPanel implements Observable {
 			// getHeight() - DEFAULT_USER_POWER : y);
 			// drawPower(g2d, markX, markY, observer.getSpeedVector(),
 			// COLOR_SPEED);
-			final String text = "F = "
-					+ Double.toString(getUserPower(selectedBallID).getLength()) + ";v = "
-					+ observer.getSpeedVector(selectedBallID).getLength();
-			g2d.drawString(text, getWidth() - text.length() * 7 - 10, getHeight() - 2);
+			/*
+			 * final String text = "F = " +
+			 * Double.toString(getUserPower(selectedBallID).getLength()) +
+			 * ";v = " + observer.getSpeedVector(selectedBallID).getLength();
+			 * g2d.drawString(text, getWidth() - text.length() * 7 - 10,
+			 * getHeight() - 2);
+			 */
 		}
 	}
 
@@ -230,6 +243,11 @@ public class Desktop extends JPanel implements Observable {
 		ballCoordinates.clear();
 		ballCoordinates.putAll(points);
 		repaint();
+	}
+
+	public void setSelectedID(final int ID) {
+
+		selectedBallID = ID;
 	}
 
 	public void turnLeftUserPower() {

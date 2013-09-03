@@ -43,7 +43,7 @@ public class Controller implements Observer {
 
 	public Vector getPowerOfFriction(final int ID) {
 
-		return model.getPowerOfFriction(ID);
+		return model.getFrictionVector(ID);
 	}
 
 	public Vector getSpeedVector(final int ID) {
@@ -59,6 +59,11 @@ public class Controller implements Observer {
 	public int getWidth() {
 
 		return desktop.getWidth();
+	}
+
+	public void newUnit(final int ID) {
+
+		model.newUnit(ID);
 	}
 
 	public void reset() {
